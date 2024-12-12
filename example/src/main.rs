@@ -1,18 +1,19 @@
-use leptos::*;
+use full::Full;
+use leptos::prelude::*;
 use leptos_animation::*;
-use leptos_router::*;
+use leptos_router::components::Route;
+use leptos_router::components::Router;
+use leptos_router::components::Routes;
+use leptos_router::path;
+use simple::Simple;
+use std::panic;
+use text::Text;
 
 extern crate console_error_panic_hook;
-
-use std::panic;
 
 mod full;
 mod simple;
 mod text;
-
-use full::Full;
-use simple::Simple;
-use text::Text;
 
 fn main() {
     panic::set_hook(Box::new(console_error_panic_hook::hook));
@@ -23,30 +24,30 @@ fn main() {
         AnimationContext::provide();
 
         view! {
-            <Router trailing_slash=TrailingSlash::Exact>
+            <Router>
                 <h1>"Animation Demo"</h1>
                 <nav>
-                    <a href="/leptos_animation/">"Full"</a>
-                    <a href="/leptos_animation/simple">"Simple"</a>
-                    <a href="/leptos_animation/text">"Text"</a>
+                    <a href="/leptos_animation/">Full</a>
+                    <a href="/leptos_animation/simple">Simple</a>
+                    <a href="/leptos_animation/text">Text</a>
                 </nav>
-                <Routes>
+                <Routes fallback=|| "Not found">
+
                     <Route
-                        path="/leptos_animation/"
+                        path=path!("/leptos_animation/")
                         view=|| {
                             view! { <Full/> }
                         }
                     />
-
                     <Route
-                        path="/leptos_animation/simple"
+                        path=path!("/leptos_animation/simple")
                         view=|| {
                             view! { <Simple/> }
                         }
                     />
 
                     <Route
-                        path="/leptos_animation/text"
+                        path=path!("/leptos_animation/text")
                         view=|| {
                             view! { <Text/> }
                         }

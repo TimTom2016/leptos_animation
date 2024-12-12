@@ -1,12 +1,12 @@
-use leptos::*;
+use leptos::prelude::*;
 use leptos_animation::*;
 use std::ops::Sub;
 
 #[component]
 pub fn Text() -> impl IntoView {
-    let (text, set_text) = create_signal("");
+    let (text, set_text) = signal("");
 
-    let animated_text = create_animated_signal(
+    let animated_text = AnimatedSignal::new(
         move || text.get().into(),
         |from, to, progress| {
             // Animate between strings by taking the beginning of the to-string

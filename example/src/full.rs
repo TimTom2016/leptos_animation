@@ -1,32 +1,32 @@
 use derive_more::{Add, Mul, Sub};
 use leptos::html::Canvas;
-use leptos::*;
+use leptos::prelude::*;
 use leptos_animation::*;
 use palette::{self, convert::FromColorUnclamped, rgb::Rgb, FromColor, Hsv, Mix};
 use std::f64::consts::PI;
-use wasm_bindgen::{JsCast, JsValue};
+use wasm_bindgen::JsCast;
 use web_sys::CanvasRenderingContext2d;
 
 #[component]
 pub fn Full() -> impl IntoView {
     // These are the target values that the animation is trying to reach
-    let (target_color, set_target_color) = create_signal(Color {
+    let (target_color, set_target_color) = signal(Color {
         red: 255,
         green: 0,
         blue: 0,
     });
-    let (target_size, set_target_size) = create_signal(Size::Small);
-    let (target_rotation, set_target_rotation) = create_signal(0.0);
+    let (target_size, set_target_size) = signal(Size::Small);
+    let (target_rotation, set_target_rotation) = signal(0.0);
     let (target_position, set_target_position) =
-        create_signal((Position { x: 200.0, y: 200.0 }, AnimationMode::Snap));
+        signal((Position { x: 200.0, y: 200.0 }, AnimationMode::Snap));
 
     // Animation mode, easings & durations are normally hardcoded, they are only signals here for demo purposes
-    let (duration, set_duration) = create_signal(Duration::Normal);
-    let (easing, set_easing) = create_signal(Easing::Smooth);
-    let (mode, set_mode) = create_signal(MouseMoveAnimationMode::None);
+    let (duration, set_duration) = signal(Duration::Normal);
+    let (easing, set_easing) = signal(Easing::Smooth);
+    let (mode, set_mode) = signal(MouseMoveAnimationMode::None);
 
     // Animated derived signals
-    let size = create_animated_signal(
+    let size = AnimatedSignal::new(
         move || AnimationTarget {
             target: target_size.get(),
             duration: duration.get_untracked().into(),
@@ -36,7 +36,7 @@ pub fn Full() -> impl IntoView {
         |from, to, progress| tween_default(&from.to_pixels(), &to.to_pixels(), progress),
     );
 
-    let rotation = create_animated_signal(
+    let rotation = AnimatedSignal::new(
         move || AnimationTarget {
             target: target_rotation.get(),
             duration: duration.get_untracked().into(),
@@ -46,7 +46,7 @@ pub fn Full() -> impl IntoView {
         tween_default,
     );
 
-    let position = create_animated_signal(
+    let position = AnimatedSignal::new(
         move || {
             let (target, mode) = target_position.get();
             AnimationTarget {
@@ -64,7 +64,7 @@ pub fn Full() -> impl IntoView {
         tween_default,
     );
 
-    let color = create_animated_signal(
+    let color = AnimatedSignal::new(
         move || AnimationTarget {
             target: target_color.get(),
             duration: duration.get_untracked().into(),
@@ -87,8 +87,8 @@ pub fn Full() -> impl IntoView {
     );
 
     // Draw a square with the animated signals
-    let canvas_ref = create_node_ref::<Canvas>();
-    create_effect(move |_| {
+    let canvas_ref = NodeRef::<Canvas>::new();
+    Effect::new(move |_| {
         if let Some(canvas) = canvas_ref.get() {
             let ctx = canvas
                 .get_context("2d")
@@ -106,7 +106,7 @@ pub fn Full() -> impl IntoView {
             ctx.rotate(rotation.get() / 180.0 * PI).unwrap();
 
             let Color { red, green, blue } = color.get();
-            ctx.set_fill_style(&JsValue::from_str(&format!("rgb({red}, {green}, {blue})")));
+            ctx.set_fill_style_str(&format!("rgb({red}, {green}, {blue})"));
 
             let size = size.get();
             ctx.fill_rect(-size / 2.0, -size / 2.0, size, size);
@@ -344,7 +344,7 @@ pub fn Full() -> impl IntoView {
                 <canvas
                     width="800"
                     height="800"
-                    _ref=canvas_ref
+                    node_ref=canvas_ref
                     on:mousedown=move |e| {
                         set_target_position
                             .set((

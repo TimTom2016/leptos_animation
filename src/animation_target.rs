@@ -12,7 +12,7 @@ impl<T: Default> Default for AnimationTarget<T> {
             target: T::default(),
             mode: DEFAULT_MODE,
             duration: DEFAULT_DURATION,
-            easing: DEFAULT_EASING
+            easing: DEFAULT_EASING,
         }
     }
 }

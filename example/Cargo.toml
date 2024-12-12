@@ -3,16 +3,13 @@ name = "example"
 version = "0.2.0"
 edition = "2021"
 
-# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
-
 [dependencies]
-leptos = { version = "0.6", features = ["nightly"] }
-leptos_router = { version = "0.6", features = ["nightly", "csr"] }
+leptos = { version = "0.7", features = ["nightly", "csr"] }
+leptos_router = { version = "0.7", features = ["nightly"] }
 wasm-bindgen = "0.2"
 web-sys = { version = "0.3", features = ["CanvasRenderingContext2d"] }
 leptos_animation = { path = ".." }
 palette = "0.7"
-derive_more = "0.99"
+derive_more = { version = "1.0", features = ["full"] }
 console_error_panic_hook = "0.1"
-log = "0.4"
 wasm-logger = "0.2"
