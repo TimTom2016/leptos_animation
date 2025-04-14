@@ -1,6 +1,10 @@
-use leptos::*;
+use leptos::prelude::*;
 use leptos_animation::*;
-use leptos_router::*;
+use leptos_meta::*;
+use leptos_router::{
+    components::{Route, Router, Routes},
+    *,
+};
 
 extern crate console_error_panic_hook;
 
@@ -15,45 +19,53 @@ use simple::Simple;
 use text::Text;
 
 fn main() {
-    panic::set_hook(Box::new(console_error_panic_hook::hook));
-    wasm_logger::init(wasm_logger::Config::default());
+    _ = console_log::init_with_level(log::Level::Debug);
+    console_error_panic_hook::set_once();
 
-    mount_to_body(|| {
-        // Initialize a single AnimationContext for all three demo's
-        AnimationContext::provide();
+    mount_to_body(|| view! {<App/>})
+}
 
-        view! {
-            <Router trailing_slash=TrailingSlash::Exact>
-                <h1>"Animation Demo"</h1>
-                <nav>
-                    <a href="/leptos_animation/">"Full"</a>
-                    <a href="/leptos_animation/simple">"Simple"</a>
-                    <a href="/leptos_animation/text">"Text"</a>
-                </nav>
-                <Routes>
-                    <Route
-                        path="/leptos_animation/"
-                        view=|| {
-                            view! { <Full/> }
-                        }
-                    />
+#[component]
+pub fn App() -> impl IntoView {
+    // Provides context that manages stylesheets, titles, meta tags, etc.
+    provide_meta_context();
+    AnimationContext::provide();
+    view! {
+        <Html attr:lang="en" attr:dir="ltr" attr:data-theme="dark" />
 
-                    <Route
-                        path="/leptos_animation/simple"
-                        view=|| {
-                            view! { <Simple/> }
-                        }
-                    />
+        // sets the document title
+        <Title text="Welcome to Leptos CSR" />
 
-                    <Route
-                        path="/leptos_animation/text"
-                        view=|| {
-                            view! { <Text/> }
-                        }
-                    />
+        // injects metadata in the <head> of the page
+        <Meta charset="UTF-8" />
+        <Meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <h1>"Animation Demo"</h1>
+        <nav>
+            <a href="/">"Full"</a>
+            <a href="/simple">"Simple"</a>
+            <a href="/text">"Text"</a>
+        </nav>
+        <Router>
 
-                </Routes>
-            </Router>
-        }
-    })
+            <Routes fallback=move || {
+                view! { <div>"Not Found"</div> }
+            }>
+                <Route
+                    path=path!("")
+                    view=Full
+                />
+
+                <Route
+                    path=path!("simple")
+                    view=Simple
+                />
+
+                <Route
+                    path=path!("text")
+                    view=Text
+                />
+
+            </Routes>
+        </Router>
+    }
 }

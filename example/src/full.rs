@@ -1,6 +1,6 @@
 use derive_more::{Add, Mul, Sub};
 use leptos::html::Canvas;
-use leptos::*;
+use leptos::prelude::*;
 use leptos_animation::*;
 use palette::{self, convert::FromColorUnclamped, rgb::Rgb, FromColor, Hsv, Mix};
 use std::f64::consts::PI;
@@ -10,20 +10,20 @@ use web_sys::CanvasRenderingContext2d;
 #[component]
 pub fn Full() -> impl IntoView {
     // These are the target values that the animation is trying to reach
-    let (target_color, set_target_color) = create_signal(Color {
+    let (target_color, set_target_color) = signal(Color {
         red: 255,
         green: 0,
         blue: 0,
     });
-    let (target_size, set_target_size) = create_signal(Size::Small);
-    let (target_rotation, set_target_rotation) = create_signal(0.0);
+    let (target_size, set_target_size) = signal(Size::Small);
+    let (target_rotation, set_target_rotation) = signal(0.0);
     let (target_position, set_target_position) =
-        create_signal((Position { x: 200.0, y: 200.0 }, AnimationMode::Snap));
+        signal((Position { x: 200.0, y: 200.0 }, AnimationMode::Snap));
 
     // Animation mode, easings & durations are normally hardcoded, they are only signals here for demo purposes
-    let (duration, set_duration) = create_signal(Duration::Normal);
-    let (easing, set_easing) = create_signal(Easing::Smooth);
-    let (mode, set_mode) = create_signal(MouseMoveAnimationMode::None);
+    let (duration, set_duration) = signal(Duration::Normal);
+    let (easing, set_easing) = signal(Easing::Smooth);
+    let (mode, set_mode) = signal(MouseMoveAnimationMode::None);
 
     // Animated derived signals
     let size = create_animated_signal(
@@ -87,8 +87,8 @@ pub fn Full() -> impl IntoView {
     );
 
     // Draw a square with the animated signals
-    let canvas_ref = create_node_ref::<Canvas>();
-    create_effect(move |_| {
+    let canvas_ref = NodeRef::<Canvas>::new();
+    Effect::new(move |_| {
         if let Some(canvas) = canvas_ref.get() {
             let ctx = canvas
                 .get_context("2d")
@@ -344,7 +344,7 @@ pub fn Full() -> impl IntoView {
                 <canvas
                     width="800"
                     height="800"
-                    _ref=canvas_ref
+                    node_ref=canvas_ref
                     on:mousedown=move |e| {
                         set_target_position
                             .set((

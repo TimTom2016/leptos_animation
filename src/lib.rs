@@ -1,15 +1,11 @@
 use instant::Instant;
+use leptos::logging::warn;
 use std::cmp::PartialEq;
-use std::fmt::Debug;
+use std::fmt::{Debug, Formatter};
 use std::ops::{Add, Deref, Mul};
 use std::{collections::VecDeque, ops::Sub, time::Duration};
 
-use leptos::{
-    create_effect, create_memo, create_trigger, leptos_dom::helpers::AnimationFrameRequestHandle,
-    on_cleanup, provide_context, request_animation_frame_with_handle, store_value, use_context,
-    Effect, IntoView, Memo, Signal, SignalDispose, SignalGet, SignalGetUntracked, SignalWith,
-    StoredValue, Trigger, View,
-};
+use leptos::prelude::*;
 
 pub mod animation_target;
 pub mod easing;
@@ -37,20 +33,20 @@ pub struct AnimationContext {
     /// this trigger yourself, it will happen automatically when animated signals exist.
     pub animation_frame: Trigger,
     state: StoredValue<AnimationContextState>,
-    custom_request_animation_frame: StoredValue<Option<Box<dyn Fn()>>>,
+    custom_request_animation_frame: StoredValue<Option<Box<dyn Fn()>>, LocalStorage>,
 }
 
 impl AnimationContext {
     /// Sets up an AnimationContext for this scope and all child scopes. For normal use you only
     /// need to call this once in a root component of the application.
     pub fn provide() -> AnimationContext {
-        let animation_frame = create_trigger();
-        let state = store_value(AnimationContextState::NoAnimationFrameRequested);
+        let animation_frame = Trigger::new();
+        let state = StoredValue::new(AnimationContextState::NoAnimationFrameRequested);
 
         let animation_context = AnimationContext {
             animation_frame,
             state,
-            custom_request_animation_frame: store_value(None),
+            custom_request_animation_frame: StoredValue::new_local(None),
         };
         provide_context(animation_context);
 
@@ -392,21 +388,20 @@ where
     let context: AnimationContext = use_context()
         .expect("No AnimationContext present, call AnimationContext::provide() in a parent scope");
 
-    let source = Signal::derive(source);
+    let source = Signal::derive_local(source);
 
-    let animation_status = store_value(AnimationStatus::<T, I>::Static(
+    let animation_status = StoredValue::new_local(AnimationStatus::<T, I>::Static(
         source.get_untracked().target,
     ));
 
     // Effect that listens to changes in the source and updates the animation status
-    let update_animation_status_effect = create_effect(move |prev| {
+    let update_animation_status_effect = Effect::new(move |prev: Option<()>| {
         let animation_target = source.get();
 
         // Don't start an animation the very first run
         if prev.is_none() {
             return;
         }
-
         animation_status.update_value(|animation_status| {
             match animation_status {
                 // Starting an animation from a non-running state
@@ -473,9 +468,8 @@ where
 
     // Signal that derives from the global animation_frame signal but only
     // fires when 'this' animation has something to update.
-    let animation_tick = create_memo(move |_| {
+    let animation_tick = Memo::new(move |_| {
         context.animation_frame.track();
-
         let was_snap = animation_status
             .with_value(|animation_status| matches!(animation_status, AnimationStatus::Snap(_)));
 
@@ -493,9 +487,8 @@ where
         }
     });
 
-    let animated_signal = Signal::derive(move || {
-        animation_tick.track();
-
+    let animated_signal = Signal::derive_local(move || {
+        animation_tick.read();
         let i: I = animation_status.with_value(|animation_status| match animation_status {
             AnimationStatus::Static(state) | AnimationStatus::Snap(state) => {
                 tween(state, state, 1.0)
@@ -539,34 +532,25 @@ where
 
 #[derive(Copy, Clone)]
 pub struct AnimatedSignal<T: 'static, I: 'static> {
-    animation_status: StoredValue<AnimationStatus<T, I>>,
-    update_animation_status_effect: Effect<()>,
+    animation_status: StoredValue<AnimationStatus<T, I>, LocalStorage>,
+    update_animation_status_effect: Effect<LocalStorage>,
     animation_tick: Memo<SignalUpdate>,
-    animated_signal: Signal<I>,
+    animated_signal: Signal<I, LocalStorage>,
 }
 
 impl<T, I> Deref for AnimatedSignal<T, I> {
-    type Target = Signal<I>;
+    type Target = Signal<I, LocalStorage>;
 
     fn deref(&self) -> &Self::Target {
         &self.animated_signal
     }
 }
 
-impl<T, I> SignalDispose for AnimatedSignal<T, I> {
+impl<T, I> Dispose for AnimatedSignal<T, I> {
     fn dispose(self) {
         self.animation_status.dispose();
         self.animation_tick.dispose();
         self.update_animation_status_effect.dispose();
         self.animated_signal.dispose();
-    }
-}
-
-impl<T, I> IntoView for AnimatedSignal<T, I>
-where
-    I: IntoView + Clone,
-{
-    fn into_view(self) -> View {
-        self.animated_signal.into_view()
     }
 }
