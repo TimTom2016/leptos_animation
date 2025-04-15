@@ -9,11 +9,11 @@ use leptos_animation::*;
 
 #[component]
 pub fn Counter() -> impl IntoView {
-    AnimationContext::provide();
+    provide_animation_context();
 
-    let (value, set_value) = create_signal(0.0);
+    let (value, set_value) = signal(0.0);
 
-    let animated_value = create_animated_signal(move || value.get().into(), tween_default);
+    let animated_value = AnimatedSignal::new(move || value.get().into(), tween_default);
 
     let clear = move |_| set_value.set(0.0);
     let decrement = move |_| set_value.update(|value| *value -= 1.0);
