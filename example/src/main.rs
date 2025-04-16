@@ -2,7 +2,7 @@ use leptos::prelude::*;
 use leptos_animation::*;
 use leptos_meta::*;
 use leptos_router::{
-    components::{Route, Router, Routes},
+    components::{Route, Router, Routes, A},
     *,
 };
 
@@ -39,14 +39,14 @@ pub fn App() -> impl IntoView {
         // injects metadata in the <head> of the page
         <Meta charset="UTF-8" />
         <Meta name="viewport" content="width=device-width, initial-scale=1.0" />
-        <h1>"Animation Demo"</h1>
-        <nav>
-            <a href="/">"Full"</a>
-            <a href="/simple">"Simple"</a>
-            <a href="/text">"Text"</a>
-        </nav>
-        <Router>
 
+        <Router base="/leptos_animation">
+            <h1>"Animation Demo"</h1>
+            <nav>
+                <A href="">"Full"</A>
+                <A href="simple">"Simple"</A>
+                <A href="text">"Text"</A>
+            </nav>
             <Routes fallback=move || {
                 view! { <div>"Not Found"</div> }
             }>
